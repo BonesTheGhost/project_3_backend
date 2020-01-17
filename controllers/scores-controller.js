@@ -3,7 +3,7 @@ const uuid = require('uuid/v4');
 const HttpError = require('../models/http-error');
 
 // ===== ===== DATA ===== =====
-const DUMMY_SCORES = [
+let DUMMY_SCORES = [
     {
         id: 's1',
         title: 'World_1: Empire',
@@ -89,7 +89,11 @@ const updateScore = (req, res, next) => {
     res.status(200).json({score: updatedScore});
 };
 
-const deleteScore = (req, res, next) => {};
+const deleteScore = (req, res, next) => {
+    const scoreId = req.params.sid;
+    DUMMY_SCORES = DUMMY_SCORES.filter(s => s.id !== scoreId);
+    res.status(200).json({message: 'Deleted Score'});
+};
 
 
 

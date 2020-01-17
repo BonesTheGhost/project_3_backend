@@ -1,6 +1,8 @@
 //'places' route
 const express = require('express');
 
+const HttpError = require('../models/http-error');
+
 const router = express.Router();
 
 
@@ -34,11 +36,9 @@ router.get('/:sid', (req, res, next) => {
 
     //For if we cannot find a score. 'return' makes it so that if this triggers, no other response is sent (which would cause an error).
     if (!score) {
-        const error = new Error('Could not find a score for that id');
-        error.code = 404;
-        return next(error);
+        return next(new HttpError('Could not find a score for that id.', 404));
     }
-    
+
     res.json({ score: score }); // { score } => { score: score }
 });
 
@@ -50,11 +50,9 @@ router.get('/user/:uid', (req, res, next) => {
         return s.creator === userId;
     });
 
-    //Have to use next(error); with ASYNC code!!
+    //Have to use 'return next(error)'; with ASYNC code!!
     if (!score) {
-        const error = new Error('Could not find a score for that USER id (creator)');
-        error.code = 404;
-        return next(error);
+        return next(new HttpError('Could not find a score for that USER id (creator)', 404));
     }
 
     res.json({ score: score });

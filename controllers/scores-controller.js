@@ -71,10 +71,35 @@ const createScore = (req, res, next) => {
     res.status(201).json({score: createdScore});
 };
 
+
+const updateScore = (req, res, next) => {
+    const { title, description } = req.body;
+
+    //Getting the id from the url
+    const scoreId = req.params.sid;
+
+    //
+    const updatedScore = { ...DUMMY_SCORES.find(s => s.id === scoreId)};
+    const scoreIndex = DUMMY_SCORES.findIndex(s => s.id === scoreId);
+    updatedScore.title = title;
+    updatedScore.description = description;
+
+    DUMMY_SCORES[scoreIndex] = updatedScore;
+
+    res.status(200).json({score: updatedScore});
+};
+
+const deleteScore = (req, res, next) => {};
+
+
+
+
 //How to export multiple things since module.exports only allows for a single export.
 exports.getScoreById = getScoreById;
 exports.getScoreByUserId = getScoreByUserId;
 exports.createScore = createScore;
+exports.updateScore = updateScore;
+exports.deleteScore = deleteScore;
 
 //Alternatives! (I chose used ES6 Arrow syntax)
 //function getPlaceById() {...}

@@ -17,6 +17,11 @@ router.get('/:sid', scoresController.getScoreById);
 router.get('/user/:uid', scoresController.getScoreByUserId);
 
 router.post('/', scoresController.createScore);
+
+//THis works because it is a different kind of route
+router.patch('/:sid', scoresController.updateScore)
+
+router.delete('/:sid', scoresController.deleteScore)
 // ===== ===== ====== ===== =====
 
 

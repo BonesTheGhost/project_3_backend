@@ -14,7 +14,7 @@ const router = express.Router();
 router.get('/:sid', scoresController.getScoreById);
 
 // '/api/scores/user/:uid
-router.get('/user/:uid', scoresController.getScoreByUserId);
+router.get('/user/:uid', scoresController.getScoresByUserId);
 
 router.post('/', scoresController.createScore);
 

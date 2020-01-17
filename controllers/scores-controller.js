@@ -35,21 +35,21 @@ const getScoreById = (req, res, next) => {
 }
 
 
-const getScoreByUserId = (req, res, next) => {
+const getScoresByUserId = (req, res, next) => {
     const userId = req.params.uid;
 
-    const score = DUMMY_SCORES.find(s => {
+    const scores = DUMMY_SCORES.filter(s => {
         return s.creator === userId;
     });
 
     //Have to use 'return next(error)'; with ASYNC code!!
-    if (!score) {
+    if (!scores || scores.length ===0) {
         return next(
             new HttpError('Could not find a score for that USER id (creator)', 404)
         );
     }
 
-    res.json({ score: score });
+    res.json({ scores: scores });
 };
 
 
@@ -100,7 +100,7 @@ const deleteScore = (req, res, next) => {
 
 //How to export multiple things since module.exports only allows for a single export.
 exports.getScoreById = getScoreById;
-exports.getScoreByUserId = getScoreByUserId;
+exports.getScoresByUserId = getScoresByUserId;
 exports.createScore = createScore;
 exports.updateScore = updateScore;
 exports.deleteScore = deleteScore;

@@ -89,13 +89,12 @@ const updateScore = (req, res, next) => {
     res.status(200).json({score: updatedScore});
 };
 
+
 const deleteScore = (req, res, next) => {
     const scoreId = req.params.sid;
     DUMMY_SCORES = DUMMY_SCORES.filter(s => s.id !== scoreId);
     res.status(200).json({message: 'Deleted Score'});
 };
-
-
 
 
 //How to export multiple things since module.exports only allows for a single export.

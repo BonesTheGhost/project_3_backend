@@ -15,6 +15,8 @@ router.get('/:sid', scoresController.getScoreById);
 
 // '/api/scores/user/:uid
 router.get('/user/:uid', scoresController.getScoreByUserId);
+
+router.post('/', scoresController.createScore);
 // ===== ===== ====== ===== =====
 
 

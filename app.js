@@ -9,6 +9,10 @@ const app = express();
 
 // ===== ===== Middleware ===== =====
 //We want to route certain requests to certain funcitons.
+
+//This is necessary to grab data from the user and submit it to the backend.
+app.use(bodyParser.json());
+
 app.use('/api/scores', scoresRoutes);
 
 //ERROR HANDLING MIDDLEWARE FUNCTION:

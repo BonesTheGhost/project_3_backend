@@ -1,3 +1,4 @@
+const uuid = require('uuid/v4');
 //So we can use our http error model.
 const HttpError = require('../models/http-error');
 
@@ -51,9 +52,29 @@ const getScoreByUserId = (req, res, next) => {
     res.json({ score: score });
 };
 
+
+//We use 'object-destructuring' { } here after 'const' to create certain constants that can be passed from the variable into the function.
+const createScore = (req, res, next) => {
+    const { title, description, location, score, creator } = req.body;
+
+    const createdScore = {
+        id: uuid(),
+        title: title,
+        description: description,
+        location : location,
+        score: score,
+        creator: creator
+    };
+
+    DUMMY_SCORES.push(createdScore); //unshift(createdPlace)
+
+    res.status(201).json({score: createdScore});
+};
+
 //How to export multiple things since module.exports only allows for a single export.
 exports.getScoreById = getScoreById;
 exports.getScoreByUserId = getScoreByUserId;
+exports.createScore = createScore;
 
 //Alternatives! (I chose used ES6 Arrow syntax)
 //function getPlaceById() {...}

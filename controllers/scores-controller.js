@@ -4,18 +4,6 @@ const { validationResult } = require('express-validator');
 const HttpError = require('../models/http-error');
 const Score = require('../models/score');
 
-// ===== ===== DATA ===== =====
-let DUMMY_SCORES = [
-    {
-        id: 's1',
-        title: 'World_1: Empire',
-        description: 'The first big thing',
-        score: 'Address',
-        creator: 'u1'
-    }
-];
-// ===== ===== ==== ===== =====
-
 const getScoreById = async (req, res, next) => {
     const scoreId = req.params.sid;
 
@@ -25,7 +13,7 @@ const getScoreById = async (req, res, next) => {
         //use .exec() if you need a real promise here...
         score = await Score.findById(scoreId);
     } catch (err) {
-        const error = new HttpError('Something went wrong, could not find a place with that id.', 500);
+        const error = new HttpError('Something went wrong, could not find a score with that id.', 500);
         return next(error);
     }
     //For if we cannot find a score. 'return' makes it so that if this triggers, no other response is sent (which would cause an error).
@@ -92,12 +80,11 @@ const createScore = async (req, res, next) => {
 };
 
 //THIS ALSO IS VALIDATED!!!
-const updateScore = (req, res, next) => {
+const updateScore = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        console.log(errors);
-        throw new HttpError('Invalid inputs passed. Please check your data!', 422);
-
+        return next(new HttpError('Invalid inputs passed. Please check your data!', 422)
+        );
     };
 
     const { title, description } = req.body;
@@ -105,24 +92,58 @@ const updateScore = (req, res, next) => {
     //Getting the id from the url
     const scoreId = req.params.sid;
 
-    //
-    const updatedScore = { ...DUMMY_SCORES.find(s => s.id === scoreId) };
-    const scoreIndex = DUMMY_SCORES.findIndex(s => s.id === scoreId);
-    updatedScore.title = title;
-    updatedScore.description = description;
+    let score;
+    try {
+        score = await Score.findById(scoreId);
+    } catch (err) {
+        const error = new HttpError(
+            'Something went wrong, could not update score.',
+            500
+        );
+        return next(error);
+    }
 
-    DUMMY_SCORES[scoreIndex] = updatedScore;
+    score.title = title;
+    score.description = description;
 
-    res.status(200).json({ score: updatedScore });
+    try {
+        await score.save();
+    } catch (err) {
+        const error = new HttpError(
+            'Something went wrong, could not update score.',
+            500
+        );
+        return next(error);
+    }
+
+    res.status(200).json({ score: score.toObject({ getters: true }) });
 };
 
 
-const deleteScore = (req, res, next) => {
+const deleteScore = async (req, res, next) => {
     const scoreId = req.params.sid;
-    if (!DUMMY_SCORES.find(s => s.id === scoreId)) {
-        throw new HttpError('Could not find a score for that id!');
-    };
-    DUMMY_SCORES = DUMMY_SCORES.filter(s => s.id !== scoreId);
+
+    let score;
+    try {
+        score = await Score.findById(scoreId);
+    } catch (err) {
+        const error = new HttpError(
+            'Something went wrong, could not delete score.',
+            500
+        );
+        return next(error);
+    }
+
+    try {
+        await score.remove();
+    } catch (err) {
+        const error = new HttpError(
+            'Something went wrong, could not delete score.',
+            500
+        );
+        return next(error);
+    }
+
     res.status(200).json({ message: 'Deleted Score' });
 };
 
@@ -135,5 +156,5 @@ exports.updateScore = updateScore;
 exports.deleteScore = deleteScore;
 
 //Alternatives! (I chose used ES6 Arrow syntax)
-//function getPlaceById() {...}
-//const getPlaceById = function() {...}
+//function getscoreById() {...}
+//const getscoreById = function() {...}

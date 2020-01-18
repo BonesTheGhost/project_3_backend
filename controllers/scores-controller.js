@@ -1,4 +1,5 @@
 const uuid = require('uuid/v4');
+const { validationResult } = require('express-validator');
 //So we can use our http error model.
 const HttpError = require('../models/http-error');
 
@@ -8,10 +9,6 @@ let DUMMY_SCORES = [
         id: 's1',
         title: 'World_1: Empire',
         description: 'The first big thing',
-        location: {
-            lat: 40.7484474,
-            lng: -73.9871516
-        },
         score: 'Address',
         creator: 'u1'
     }
@@ -54,14 +51,21 @@ const getScoresByUserId = (req, res, next) => {
 
 
 //We use 'object-destructuring' { } here after 'const' to create certain constants that can be passed from the variable into the function.
+//This validationResult looks into the request object and checks for validtion erros based on setup in 'scores-routes'.
 const createScore = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log(errors);
+        throw new HttpError('Invalid inputs passed. Please check your data!', 422);
+        
+    };
+
     const { title, description, location, score, creator } = req.body;
 
     const createdScore = {
         id: uuid(),
         title: title,
         description: description,
-        location : location,
         score: score,
         creator: creator
     };
@@ -71,8 +75,15 @@ const createScore = (req, res, next) => {
     res.status(201).json({score: createdScore});
 };
 
-
+//THIS ALSO IS VALIDATED!!!
 const updateScore = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.log(errors);
+        throw new HttpError('Invalid inputs passed. Please check your data!', 422);
+        
+    };
+
     const { title, description } = req.body;
 
     //Getting the id from the url
@@ -92,6 +103,9 @@ const updateScore = (req, res, next) => {
 
 const deleteScore = (req, res, next) => {
     const scoreId = req.params.sid;
+    if ( !DUMMY_SCORES.find(s => s.id === scoreId)) {
+        throw new HttpError('Could not find a score for that id!');
+    };
     DUMMY_SCORES = DUMMY_SCORES.filter(s => s.id !== scoreId);
     res.status(200).json({message: 'Deleted Score'});
 };

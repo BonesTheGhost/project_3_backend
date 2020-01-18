@@ -2,6 +2,7 @@ const uuid = require('uuid/v4');
 const { validationResult } = require('express-validator');
 //So we can use our http error model.
 const HttpError = require('../models/http-error');
+const Score = require('../models/score');
 
 // ===== ===== DATA ===== =====
 let DUMMY_SCORES = [
@@ -40,7 +41,7 @@ const getScoresByUserId = (req, res, next) => {
     });
 
     //Have to use 'return next(error)'; with ASYNC code!!
-    if (!scores || scores.length ===0) {
+    if (!scores || scores.length === 0) {
         return next(
             new HttpError('Could not find a score for that USER id (creator)', 404)
         );
@@ -52,27 +53,24 @@ const getScoresByUserId = (req, res, next) => {
 
 //We use 'object-destructuring' { } here after 'const' to create certain constants that can be passed from the variable into the function.
 //This validationResult looks into the request object and checks for validtion erros based on setup in 'scores-routes'.
-const createScore = (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        console.log(errors);
-        throw new HttpError('Invalid inputs passed. Please check your data!', 422);
-        
-    };
+const createScore = async (req, res, next) => {
+    const createdScore = new Score({
+        title,
+        description,
+        image: 'https://homepages.cae.wisc.edu/~ece533/images/goldhill.png',
+        score,
+        creator
+    });
 
-    const { title, description, location, score, creator } = req.body;
+    try {
+        //This handles storing information in our database AND creates our unique ID. Its also ASYNC!!
+        await createdScore.save();
+    } catch (err) {
+        const error = new HttpError('Creating score failed. Please try again!', 500);
+        return next(error);
+    }
 
-    const createdScore = {
-        id: uuid(),
-        title: title,
-        description: description,
-        score: score,
-        creator: creator
-    };
-
-    DUMMY_SCORES.push(createdScore); //unshift(createdPlace)
-
-    res.status(201).json({score: createdScore});
+    res.status(201).json({ score: createdScore });
 };
 
 //THIS ALSO IS VALIDATED!!!
@@ -81,7 +79,7 @@ const updateScore = (req, res, next) => {
     if (!errors.isEmpty()) {
         console.log(errors);
         throw new HttpError('Invalid inputs passed. Please check your data!', 422);
-        
+
     };
 
     const { title, description } = req.body;
@@ -90,24 +88,24 @@ const updateScore = (req, res, next) => {
     const scoreId = req.params.sid;
 
     //
-    const updatedScore = { ...DUMMY_SCORES.find(s => s.id === scoreId)};
+    const updatedScore = { ...DUMMY_SCORES.find(s => s.id === scoreId) };
     const scoreIndex = DUMMY_SCORES.findIndex(s => s.id === scoreId);
     updatedScore.title = title;
     updatedScore.description = description;
 
     DUMMY_SCORES[scoreIndex] = updatedScore;
 
-    res.status(200).json({score: updatedScore});
+    res.status(200).json({ score: updatedScore });
 };
 
 
 const deleteScore = (req, res, next) => {
     const scoreId = req.params.sid;
-    if ( !DUMMY_SCORES.find(s => s.id === scoreId)) {
+    if (!DUMMY_SCORES.find(s => s.id === scoreId)) {
         throw new HttpError('Could not find a score for that id!');
     };
     DUMMY_SCORES = DUMMY_SCORES.filter(s => s.id !== scoreId);
-    res.status(200).json({message: 'Deleted Score'});
+    res.status(200).json({ message: 'Deleted Score' });
 };
 
 

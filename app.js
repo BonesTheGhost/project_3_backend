@@ -37,7 +37,7 @@ app.use((error, req, res, next) => {
 //Connect to the db FIRST, since if this can't be completed, we don't need the server.
 //This connect returns a promise since connecitng to the server is an asynchronous task.
 mongoose
-  .connect()
+  .connect('mongodb+srv://Bones1:Rattlethemb0nes@vubccapstone-urmmi.mongodb.net/scores?retryWrites=true&w=majority')
   .then(() => {
     //npm start (Backend Server)
     app.listen(5000);

@@ -16,20 +16,24 @@ let DUMMY_SCORES = [
 ];
 // ===== ===== ==== ===== =====
 
-const getScoreById = (req, res, next) => {
+const getScoreById = async (req, res, next) => {
     const scoreId = req.params.sid;
 
-    const score = DUMMY_SCORES.find(s => {
-        return s.id === scoreId;
-    });
+    let score;
 
+    try {
+        //use .exec() if you need a real promise here...
+        score = await Score.findById(scoreId);
+    } catch (err) {
+        const error = new HttpError('Something went wrong, could not find a place with that id.', 500);
+        return next(error);
+    }
     //For if we cannot find a score. 'return' makes it so that if this triggers, no other response is sent (which would cause an error).
     if (!score) {
-        return next(
-            new HttpError('Could not find a score for that id.', 404)
-        );
+        const error = new HttpError('Could not find a score for that id.', 404);
+        return next(error);
     }
-    res.json({ score: score }); // { score } => { score: score }
+    res.json({ score: score.toObject({ getters: true }) }); // { score } => { score: score }
 }
 
 
@@ -54,12 +58,22 @@ const getScoresByUserId = (req, res, next) => {
 //We use 'object-destructuring' { } here after 'const' to create certain constants that can be passed from the variable into the function.
 //This validationResult looks into the request object and checks for validtion erros based on setup in 'scores-routes'.
 const createScore = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return next(
+            new HttpError('Invalid inputs passed, please check your data.', 422)
+        );
+    }
+
+    const { title, description, score, creator } = req.body;
+
+
     const createdScore = new Score({
-        title,
-        description,
+        title: title,
+        description: description,
         image: 'https://homepages.cae.wisc.edu/~ece533/images/goldhill.png',
-        score,
-        creator
+        score: score,
+        creator: creator
     });
 
     try {

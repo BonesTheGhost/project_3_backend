@@ -37,12 +37,16 @@ const getScoreById = async (req, res, next) => {
 }
 
 
-const getScoresByUserId = (req, res, next) => {
+const getScoresByUserId = async (req, res, next) => {
     const userId = req.params.uid;
 
-    const scores = DUMMY_SCORES.filter(s => {
-        return s.creator === userId;
-    });
+    let scores;
+    try {
+        scores = await Score.find({ creator: userId });
+    } catch (err) {
+        const error = HttpError('Fetching scores failed, please try again later.', 500);
+        return next(error);
+    }
 
     //Have to use 'return next(error)'; with ASYNC code!!
     if (!scores || scores.length === 0) {
@@ -51,7 +55,7 @@ const getScoresByUserId = (req, res, next) => {
         );
     }
 
-    res.json({ scores: scores });
+    res.json({ scores: scores.map(score => score.toObject({ getters: true })) });
 };
 
 

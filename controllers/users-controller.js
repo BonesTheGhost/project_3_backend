@@ -3,6 +3,7 @@ const HttpError = require('../models/http-error');
 
 const { validationResult } = require('express-validator');
 const User = require('../models/user');
+const mongoose = require('mongoose');
 
 /*
 const DUMMY_USERS = [
@@ -17,8 +18,15 @@ const DUMMY_USERS = [
 */
 
 
-const getUsers = (req, res, next) => {
-    res.status(200).json({ users: DUMMY_USERS });
+const getUsers = async (req, res, next) => {
+    let users;
+    try{
+        users = await User.find({}, '-password');
+    } catch (err) {
+        const error = new HttpError('Fetching user failed, please try again later.', 500);
+        return next(error);
+    }
+    res.json({ users: users.map(user => user.toObject({ getters: true }))})
 };
 
 
@@ -32,7 +40,7 @@ const signup = async (req, res, next) => {
 
     };
 
-    const { name, email, password, scores } = req.body;
+    const { name, email, password, } = req.body;
 
     let existingUser;
     try {
@@ -51,8 +59,7 @@ const signup = async (req, res, next) => {
         name,
         email,
         image: "https://homepages.cae.wisc.edu/~ece533/images/tulips.png",
-        password,
-        scores
+        password
     });
 
     try {

@@ -3,6 +3,8 @@ const { validationResult } = require('express-validator');
 //So we can use our http error model.
 const HttpError = require('../models/http-error');
 const Score = require('../models/score');
+const User = require('../models/user');
+const mongoose = require('mongoose');
 
 const getScoreById = async (req, res, next) => {
     const scoreId = req.params.sid;
@@ -61,16 +63,36 @@ const createScore = async (req, res, next) => {
 
 
     const createdScore = new Score({
-        title: title,
-        description: description,
+        title,
+        description,
         image: 'https://homepages.cae.wisc.edu/~ece533/images/goldhill.png',
-        score: score,
-        creator: creator
+        score,
+        creator
     });
 
+    let user;
+
     try {
-        //This handles storing information in our database AND creates our unique ID. Its also ASYNC!!
-        await createdScore.save();
+        user = User.findById(creator);
+    } catch (err) {
+        const error = new HttpError('Creating score failed.', 500)
+    }
+
+    if(!user) {
+        const error = new HttpError('Could not find a user for provided id.');
+        return next(error);
+    }
+
+    console.log(user);
+
+    try {
+        const sess = await mongoose.startSession();
+        sess.startTransaction();
+        await createdScore.save({ session: sess });
+        user.scores.push(createdScore);
+        await user.save({ session: sess });
+        await sess.commitTransaction();
+
     } catch (err) {
         const error = new HttpError('Creating score failed. Please try again!', 500);
         return next(error);
